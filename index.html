@@ -1,22 +1,48 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ESP32 3D 控制</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>ESP32 LED 3D Controller</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 </head>
 <body>
-  <h1>ESP32 控制面板</h1>
+<script>
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+let renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-  <button onclick="ledOn()">開燈</button>
-  <button onclick="ledOff()">關燈</button>
-  <input type="range" min="0" max="255" value="128" oninput="setBrightness(this.value)">
+let geometry = new THREE.BoxGeometry();
+let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+let cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+camera.position.z = 5;
 
-  <div id="viewer"></div>
+function animate() {
+  requestAnimationFrame(animate);
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="main.js"></script>
+// ESP32 IP
+const ESP32_IP = "192.168.X.X";  // 改成你的 ESP32 IP
+
+document.addEventListener("click", () => {
+  let r = Math.floor(Math.random()*255);
+  let g = Math.floor(Math.random()*255);
+  let b = Math.floor(Math.random()*255);
+
+  cube.material.color.setRGB(r/255, g/255, b/255);
+
+  fetch(`http://${ESP32_IP}/set?r=${r}&g=${g}&b=${b}`)
+    .then(res => console.log("LED updated:", r, g, b));
+});
+</script>
 </body>
 </html>
